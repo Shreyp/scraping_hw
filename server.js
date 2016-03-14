@@ -24,17 +24,17 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
   extended: false
 }));
-  
+
 //Middleware
-app.use("/js", express.static("public/js"));
-app.use("/css", express.static("public/css"));
-app.use("/images", express.static("public/images"));
+app.use('/js', express.static('public/js'));
+app.use('/css', express.static('public/css'));
+app.use('/images', express.static('public/images'));
 
 //Setup for Mongoose
 var mongoose = require('mongoose');
 
 //Local Mongoose Setup
-mongoose.connect('mongodb://localhost/scraperDB');
+mongoose.connect('mongodb://localhost/redditDB');
 var db = mongoose.connection;
 
 db.on('error', function(err) {
@@ -45,14 +45,46 @@ db.once('open', function() {
 });
 
 //require mongoose schemas
-var ScrapedData = require('./models/models.js');
+var redditData = require('./models/data.js');
+var Note = require('./models/notes.js');
 
-//routes
+// //routes
+// app.get('/', function(req, res) {
+// });
+
+//scrape data and save to database
 app.get('/', function(req, res) {
-  res.render(__dirname + "/views/home");
+  request('https://www.reddit.com/r/all', function (error, response, html) {
+    var $ = cheerio.load(html);
+    var result = [];
+    $(".title").each(function(i, element){
+
+      //scrape some stuff, put it in an object
+
+      var title = $(this).text();
+      var link = $(this).children('a').attr('href');
+
+      if (title && link) {
+        var newredditData = new redditData({title:title, link:link});
+        //mongoose save data
+        newredditData.save(function(err, doc) {
+          if (err) {
+            console.log(err)   
+          } else {
+            console.log(doc)
+          }
+        });
+      }
+    });
+  });
+  res.render(__dirname + '/views/home');;
 });
+
+
+
+
 
 //Listen
 app.listen(PORT, function(){
-  console.log("Listening on " + PORT)
+  console.log('Listening on ' + PORT)
 });
