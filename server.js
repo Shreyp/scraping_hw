@@ -48,10 +48,6 @@ db.once('open', function() {
 var redditData = require('./models/data.js');
 var Note = require('./models/notes.js');
 
-// //routes
-// app.get('/', function(req, res) {
-// });
-
 //scrape data and save to database
 app.get('/', function(req, res) {
   request('https://www.reddit.com/r/all', function (error, response, html) {
@@ -59,7 +55,7 @@ app.get('/', function(req, res) {
     var result = [];
     $(".title").each(function(i, element){
 
-      //scrape some stuff, put it in an object
+      //scrape data and put it into an object
 
       var title = $(this).text();
       var link = $(this).children('a').attr('href');
